@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en" ng-app="lightApp" ng-csp>
+  <head>
+    <meta charset="utf-8" />
+    <title>Chroma Lights Controller</title>
+    <link rel="stylesheet" href="app.css" />
+    <script src="lib/angular.js" defer="defer"></script>
+    <script src="lib/jshue.js" defer="defer"></script>
+    <script src="app.js" defer="defer"></script>
+    <script src="hueServices.js" defer="defer"></script>
+  </head>
+  <body ng-controller="LightCtrl">
+    <div>
+      <span>{{status}}</span>
+      <ul>
+        <li ng-repeat="light in lights" class="light">
+	  <span class="name">{{light.name}}</span>
+	  <span class="power">{{light.state.on|printBool}}</span><br />
+	  <button class="power"
+                  ng-click="togglePower()">Turn
+            {{light.state.on|printBool:true}}</button>
+          <br />
+	  <label>Brightness</label>
+          <input type="range" min="0"
+                 max="255" class="bri"
+                 ng-model="light.state.bri"
+                 ng-change="brightnessChange()"/>
+          <br />
+	  <div class="color-help"></div>
+	  <label>Hue</label>
+          <input type="range" class="hue" min="0"
+                 max="65535"
+                 ng-model="light.state.hue"
+                 ng-change="hueChange()"/>
+          <br />
+	  <label>Saturation</label>
+          <input type="range" min="0"
+                 max="255" class="sat"
+                 ng-model="light.state.sat"
+                 ng-change="satChange()"/>
+          <br />
+	  <button class="alert"
+                  ng-click="alert()">Alert</button>
+	  <button class="colorloop"
+                  ng-click="startColorLoop()">Color Loop</button>
+	  <button class="stopColorLoop"
+                  ng-click="stopColorLoop()">Stop Color Loop</button>
+        </li>
+      </ul>
+    </div>
+  </body>
+</html>
+
