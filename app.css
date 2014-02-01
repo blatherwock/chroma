@@ -1,6 +1,8 @@
 body {
-    min-width: 357px;
+    width: 396px;
     overflow-x: hidden;
+    color: white;
+    background-color: #252525;
 }
 li {
     padding-top: 15px;
@@ -30,7 +32,6 @@ label:after{
     background: linear-gradient(to bottom, rgb(200, 200, 200), rgb(250, 250, 250));
     pointer-events: none;
 }
-
 .color-help {
     background: linear-gradient(90deg, hsl(0, 100%, 50%), 
                                 hsl(60, 100%, 50%), 
@@ -43,7 +44,30 @@ label:after{
     width: 130px;
     margin-left: 38px;
 }
+.lights {
+    max-height: 480px;
+    overflow-y: auto;
+}
+.light {
+    display: inline-block;
+    text-align: center;
+    border: 1px solid silver;
+    padding: 15px;
+    margin: 20px 15px;
+    max-width: 70px;
+}
+.selectedtrue {
+    border: 1px solid cyan;
+}
 .lightBulb {
-    width: 50px;
+    width: 60px;
     height: 100px;
+    margin: 5px;
+    display: block;
+}
+.lightControls {
+    border: 1px solid silver;
+    width: 250px;
+    padding: 15px;
+    margin: 10px auto;
 }

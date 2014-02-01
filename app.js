@@ -24,68 +24,121 @@ lightApp.controller('LightCtrl', ['$scope', '$timeout', 'hueBridgeInitializer', 
                                       user = hue_user;
                                       $scope.status = "";
                                       user.getFullState( function(state) {
-                                          $scope.lights = state.lights;
+					  var lights = [];
+					  var i = 0;
+					  while(state.lights[++i]) {
+					      state.lights[i].hueID = i;
+					      state.lights[i].isSelected = true;
+					      lights.push(state.lights[i]);
+					  }
+                                          $scope.lights = lights;
+					  updateSelectedState();
                                           // to update the view since we aren't using an AngularJS service
                                           $scope.$apply();
                                       });
                                   });
     });
-
+    // Setup defaults for our selection 'light'
+    $scope.selection = {};
     $scope.lightToHex = function(light) {
 	var hue = (light.state.hue / 65535) * 360;
 	var sat = (light.state.sat / 255) * 100;
-	var li  = (light.state.bri / 255) * 100;
+	var li  = (light.state.bri / 255) * 75 + 25;
 	return "hsl(" + hue + ", " + sat + "%, " + li + "%)";
+    };
+    var getSelectedLights = function () {
+	var selected = function(l) { return l.isSelected; };
+	return $scope.lights.filter(selected);
+    };
+    var updateSelectedState = function () {
+	var selectedLights = getSelectedLights();
+	var matcher = function(matchingFunction) {
+	    return function(prev, cur) {
+		return (matchingFunction(prev, cur)) ? prev : undefined;
+	    }
+	};
+	var setSelectedProp = function(prop) {
+	    var m = matcher(function(p, c) { return p && c && p.state[prop] == c.state[prop]; });
+	    var matchedLight = selectedLights.reduce(m);
+	    if (matchedLight) {
+		$scope.selection[prop] = matchedLight.state[prop];
+	    } else {
+		delete $scope.selection[prop];
+	    }
+	}
+	setSelectedProp("hue");
+	setSelectedProp("sat");
+	setSelectedProp("bri");
     }
+    var pushSelectedLightState = function () {
+	getSelectedLights().forEach( function(light) {
+	    var lightState = light.state,
+	        selecState = $scope.selection;
+	    for (prop in selecState) {
+		lightState[prop] = selecState[prop];
+	    }
+	    pushLightState(light);
+	});
+    };
+    var pushLightState = function (light) {
+	user.setLightState(light.hueID, {
+	    on : light.state.on,
+	    hue : parseInt(light.state.hue, 10),
+	    sat : parseInt(light.state.sat, 10),
+	    bri : parseInt(light.state.bri, 10),
+	    effect : light.state.effect
+	});
+    };
     // ---- Events ----
+    $scope.toggleSelection = function () {
+	this.light.isSelected = !this.light.isSelected;
+	updateSelectedState();
+    };
     $scope.powerOn = function() {
-        user.setLightState( this.$index + 1, { on : true } );
         this.light.state.on = true;
+	pushLightState(this.light);
     };
     $scope.powerOff = function() {
-	user.setLightState( this.$index + 1, { on : false } );
 	this.light.state.on = false;
+	pushLightState(this.light);
     };
+    $scope.powerSelectedOn = function() {
+	$scope.selection.on = true;
+	pushSelectedLightState();
+    };
+    $scope.powerSelectedOff = function() {
+	$scope.selection.on = false;
+	pushSelectedLightState();
+    };
+
     // -- Slider Events --
-    var sliderHandler = function (propName) {
+    var hsbSliderHandler = function () {
 	var timeoutID;
-	return function(lightID, newValue) {
+	return function() {
 	    if (timeoutID != null) {
 		$timeout.cancel(timeoutID);
 	    }
 	    timeoutID = $timeout( function() {
-		var newState = {};
-		newState[propName] = newValue;
-		user.setLightState( lightID, newState );
+		pushSelectedLightState();
 		timeoutID = null;
 	    }, 100);
 	}	    
-    };
-    var brightnessHandler = sliderHandler("bri");
-    var hueHandler = sliderHandler("hue");
-    var satHandler = sliderHandler("sat");
-    $scope.brightnessChange = function() {
-        var newBrightness = parseInt(this.light.state.bri, 10);
-        brightnessHandler(this.$index + 1, newBrightness);
-    };
-    $scope.hueChange = function() {
-        var newHue = parseInt(this.light.state.hue, 10);
-        hueHandler(this.$index + 1, newHue);
-    };
-    $scope.satChange = function() {
-        var newSat = parseInt(this.light.state.sat, 10);
-        satHandler(this.$index + 1, newSat);
-    };
+    }();
+    $scope.hsbSelectedChange = function() {
+	hsbSliderHandler();
+    }
 
     // -- Misc Events --
     $scope.alert = function() {
 	user.setLightState( this.$index + 1, { alert : "select" } );
     };
-    $scope.startColorLoop = function() {
-	user.setLightState( this.$index + 1, { effect : "colorloop" } );
-    }
-    $scope.stopColorLoop = function() {
-	user.setLightState( this.$index + 1, { effect : "none" } );
+    $scope.startSelectedColorLoop = function() {
+	$scope.selection.effect = "colorloop";
+	pushSelectedLightState();
+    };
+    $scope.stopSelectedColorLoop = function() {
+	$scope.selection.effect = "none";
+	pushSelectedLightState();
     };
     $scope.save = function() {
 	

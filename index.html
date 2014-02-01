@@ -13,46 +13,11 @@
   <body ng-controller="LightCtrl">
     <div>
       <span>{{status}}</span>
-      <ul>
-        <li ng-repeat="light in lights" class="light">
+      <ul class="lights">
+        <li ng-repeat="light in lights"
+	    class="light selected{{light.isSelected}}"
+	    ng-click="toggleSelection()">
 	  <span class="name">{{light.name}}</span>
-	  <div class="powerButtonOn{{light.state.on}}">
-	    <button class="powerOn"
-                    ng-click="powerOn()">On</button>
-	    <button class="powerOff"
-		    ng-click="powerOff()">Off</button>
-	  </div>
-          <br />
-	  <label>Brightness</label>
-          <input type="range" min="0"
-                 max="255" class="bri"
-                 ng-model="light.state.bri"
-                 ng-change="brightnessChange()"/>
-	  <span>{{ light.state.bri }}</span>
-          <br />
-	  <div class="color-help"></div>
-	  <label>Hue</label>
-          <input type="range" class="hue" min="0"
-                 max="65535"
-                 ng-model="light.state.hue"
-                 ng-change="hueChange()"/>
-	  <span>{{ light.state.hue }}</span>
-          <br />
-	  <label>Saturation</label>
-          <input type="range" min="0"
-                 max="255" class="sat"
-                 ng-model="light.state.sat"
-                 ng-change="satChange()"/>
-	  <span>{{ light.state.sat }}</span>
-          <br />
-	  <button class="alert"
-                  ng-click="alert()">Alert</button>
-	  <button class="colorloop"
-                  ng-click="startColorLoop()">Color Loop</button>
-	  <button class="stopColorLoop"
-                  ng-click="stopColorLoop()">Stop Color Loop</button>
-	  <button ng-click="save()">Save</button>
-
 	  <svg xmlns="http://www.w3.org/2000/svg"
 	       xmlns:xlink="http://www.w3.org/1999/xlink"
 	       viewBox="0 0 132 205"
@@ -76,11 +41,54 @@
 	    <g>
 	      <use xlink:href="#bulbPath" transform="matrix(1.0498107,0,0,1.0011324,-3.3074492,-2.6920672)"
 		    style="fill:{{lightToHex(light)}}; filter: url(#lightGlow);"/>
-	      <use xlink:href="#bulbPath" style="fill: url(#grayBulbGradient); stroke: #c8c8c8; stroke-width: 0.5;"/>
+	      <use xlink:href="#bulbPath" style="fill: url(#grayBulbGradient); stroke: #a8a8a8; stroke-width: 1.2;"/>
 	    </g>
 	  </svg>
+	  <div class="powerButtonWrapper powerButtonOn{{light.state.on}}">
+	    <button class="powerOn"
+                    ng-click="powerOn()">On</button>
+	    <button class="powerOff"
+		    ng-click="powerOff()">Off</button>
+	  </div>
+	  <button class="alert"
+                  ng-click="alert()">Alert</button>
         </li>
       </ul>
+      <div class="lightControls">
+	<button class="powerOn"
+                ng-click="powerSelectedOn()">On</button>
+	<button class="powerOff"
+		ng-click="powerSelectedOff()">Off</button>
+        <br />
+	<label>Brightness</label>
+        <input type="range" min="0"
+               max="255" class="bri"
+	       ng-model="selection.bri"
+               ng-change="hsbSelectedChange()"/>
+	<span>{{ selection.bri }}</span>
+        <br />
+	<div class="color-help"></div>
+	<label>Hue</label>
+        <input type="range" class="hue" min="0"
+               max="65535"
+	       ng-model="selection.hue"
+               ng-change="hsbSelectedChange()"/>
+	<span>{{ selection.hue }}</span>
+        <br />
+	<label>Saturation</label>
+        <input type="range" min="0"
+               max="255" class="sat"
+               ng-model="selection.sat"
+               ng-change="hsbSelectedChange()"/>
+	<span>{{ selection.sat }}</span>
+        <br />
+	<button class="alert"
+                ng-click="selectedAlert()">Alert</button>
+	<button class="colorloop"
+                ng-click="startSelectedColorLoop()">Color Loop</button>
+	<button class="stopColorLoop"
+                ng-click="stopSelectedColorLoop()">Stop Color Loop</button>
+      </div>
     </div>
   </body>
 </html>
