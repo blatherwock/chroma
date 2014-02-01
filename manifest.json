@@ -3,7 +3,7 @@
 
     "name" : "Chroma Lights",
     "description" : "Chrome Extension to controll a Phillips Hue lighting system",
-    "version" : "0.0.0",
+    "version" : "0.1.0",
 
     "permissions" : [
 
