@@ -86,7 +86,8 @@ lightApp.controller('LightCtrl', ['$scope', '$timeout', 'hueBridgeInitializer', 
 	    hue : parseInt(light.state.hue, 10),
 	    sat : parseInt(light.state.sat, 10),
 	    bri : parseInt(light.state.bri, 10),
-	    effect : light.state.effect
+	    effect : light.state.effect,
+	    alert : light.state.alert
 	});
     };
     // ---- Events ----
@@ -129,8 +130,11 @@ lightApp.controller('LightCtrl', ['$scope', '$timeout', 'hueBridgeInitializer', 
     }
 
     // -- Misc Events --
-    $scope.alert = function() {
-	user.setLightState( this.$index + 1, { alert : "select" } );
+    $scope.selectedAlert = function() {
+	$scope.selection.alert = "select";
+	pushSelectedLightState();
+	// so we don't alert when the user changes something else, clear it
+	delete $scope.selection.alert;
     };
     $scope.startSelectedColorLoop = function() {
 	$scope.selection.effect = "colorloop";
