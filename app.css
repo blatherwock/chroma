@@ -2,13 +2,6 @@ body {
     min-width: 357px;
     overflow-x: hidden;
 }
-div, ul, li, p {
-    margin: 0;
-    padding: 0;
-}
-ul {
-    list-style:none;
-}
 li {
     padding-top: 15px;
 }
@@ -20,6 +13,24 @@ label:after{
     font-weight: bold;
     font-size: 16px;
 }
+.powerOn, .powerOff {
+    margin: 0;
+    border: 1px solid silver;
+    background: linear-gradient(to bottom, rgb(250, 250, 250), rgb(200, 200, 200));
+}
+.powerOn {
+    border-radius: 4px 0 0 4px;
+}
+.powerOff {
+    border-radius: 0 4px 4px 0;
+    margin-left: -5px;
+}
+.powerButtonOntrue .powerOn,
+.powerButtonOnfalse .powerOff {
+    background: linear-gradient(to bottom, rgb(200, 200, 200), rgb(250, 250, 250));
+    pointer-events: none;
+}
+
 .color-help {
     background: linear-gradient(90deg, hsl(0, 100%, 50%), 
                                 hsl(60, 100%, 50%), 
@@ -31,4 +42,8 @@ label:after{
     height: 10px;
     width: 130px;
     margin-left: 38px;
+}
+.bulbColor{
+    fill:	#eeffaa;
+    filter:	url(#filter5548);
 }

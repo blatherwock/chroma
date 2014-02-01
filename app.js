@@ -31,11 +31,20 @@ lightApp.controller('LightCtrl', ['$scope', '$timeout', 'hueBridgeInitializer', 
                                   });
     });
 
+    $scope.lightToHex = function(light) {
+	var hue = (light.state.hue / 65535) * 360;
+	var sat = (light.state.sat / 255) * 100;
+	var li  = (light.state.bri / 255) * 100;
+	return "hsl(" + hue + ", " + sat + "%, " + li + "%)";
+    }
     // ---- Events ----
-    $scope.togglePower = function() {
-        var currentlyOn = this.light.state.on;
-        user.setLightState( this.$index + 1, { on :!currentlyOn } );
-        this.light.state.on = !currentlyOn;
+    $scope.powerOn = function() {
+        user.setLightState( this.$index + 1, { on : true } );
+        this.light.state.on = true;
+    };
+    $scope.powerOff = function() {
+	user.setLightState( this.$index + 1, { on : false } );
+	this.light.state.on = false;
     };
     // -- Slider Events --
     var sliderHandler = function (propName) {
@@ -78,4 +87,7 @@ lightApp.controller('LightCtrl', ['$scope', '$timeout', 'hueBridgeInitializer', 
     $scope.stopColorLoop = function() {
 	user.setLightState( this.$index + 1, { effect : "none" } );
     };
+    $scope.save = function() {
+	
+    }
 }]);
