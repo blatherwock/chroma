@@ -43,7 +43,7 @@ label:after{
     width: 130px;
     margin-left: 38px;
 }
-.bulbColor{
-    fill:	#eeffaa;
-    filter:	url(#filter5548);
+.lightBulb {
+    width: 50px;
+    height: 100px;
 }
