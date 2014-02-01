@@ -50,6 +50,11 @@ lightApp.controller('LightCtrl', ['$scope', '$timeout', 'hueBridgeInitializer', 
 	var selected = function(l) { return l.isSelected; };
 	return $scope.lights.filter(selected);
     };
+    var alertSelectedLights = function () {
+	getSelectedLights().forEach( function (l) {
+	    user.setLightState(l.hueID, { alert : "select" });
+	});
+    }
     var updateSelectedState = function () {
 	var selectedLights = getSelectedLights();
 	var matcher = function(matchingFunction) {
@@ -87,7 +92,6 @@ lightApp.controller('LightCtrl', ['$scope', '$timeout', 'hueBridgeInitializer', 
 	    sat : parseInt(light.state.sat, 10),
 	    bri : parseInt(light.state.bri, 10),
 	    effect : light.state.effect,
-	    alert : light.state.alert
 	});
     };
     // ---- Events ----
@@ -131,10 +135,7 @@ lightApp.controller('LightCtrl', ['$scope', '$timeout', 'hueBridgeInitializer', 
 
     // -- Misc Events --
     $scope.selectedAlert = function() {
-	$scope.selection.alert = "select";
-	pushSelectedLightState();
-	// so we don't alert when the user changes something else, clear it
-	delete $scope.selection.alert;
+	alertSelectedLights();
     };
     $scope.startSelectedColorLoop = function() {
 	$scope.selection.effect = "colorloop";
