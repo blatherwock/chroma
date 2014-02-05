@@ -51,7 +51,7 @@ label:after{
 .light {
     display: inline-block;
     text-align: center;
-    border: 1px solid silver;
+    border: 1px solid black;
     padding: 15px;
     margin: 20px 15px;
     max-width: 70px;
@@ -70,4 +70,9 @@ label:after{
     width: 250px;
     padding: 15px;
     margin: 10px auto;
+}
+
+#huePicker {
+    width: 300px;
+    height: 200px;
 }

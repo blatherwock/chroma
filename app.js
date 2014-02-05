@@ -197,4 +197,12 @@ lightApp.controller('LightCtrl', ['$scope', '$timeout', 'hueBridgeInitializer', 
     $scope.save = function() {
 	
     }
+
+
+    var huePicker = $("huePicker");
+
+    var drawHuePickerBackground = function () {
+	var ctx = huePicker[0].getContext('2d');
+	
+    };
 }]);
