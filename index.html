@@ -46,9 +46,9 @@
 	  </svg>
 	  <div class="powerButtonWrapper powerButtonOn{{light.state.on}}">
 	    <button class="powerOn"
-                    ng-click="powerOn()">On</button>
+                    ng-click="powerOn($event)">On</button>
 	    <button class="powerOff"
-		    ng-click="powerOff()">Off</button>
+		    ng-click="powerOff($event)">Off</button>
 	  </div>
         </li>
       </ul>

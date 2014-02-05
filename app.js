@@ -16,6 +16,27 @@ lightApp.controller('LightCtrl', ['$scope', '$timeout', 'hueBridgeInitializer', 
         $scope.status = newStatus;
         $scope.$apply();
     }
+    var selectedBulbStorage = {
+	isInit : function() {
+	    return localStorage['selectedBulbs'];
+	},
+	init : function (bulbs) {
+	    localStorage['selectedBulbs'] = JSON.stringify(bulbs);
+	},
+	isBulbSelected : function(bulbID) {
+	    return JSON.parse(localStorage['selectedBulbs']).indexOf(bulbID) != -1;
+	},
+	removeBulb : function(bulbID) {
+	    var storage = JSON.parse(localStorage['selectedBulbs']);
+	    storage.splice(storage.indexOf(bulbID), 1);
+	    localStorage['selectedBulbs'] = JSON.stringify(storage);
+	},
+	addBulb : function(bulbID) {
+	    var storage = JSON.parse(localStorage['selectedBulbs']);
+	    storage.push(bulbID);
+	    localStorage['selectedBulbs'] = JSON.stringify(storage);
+	}
+    };
     //delay init so $scope.$apply in updateStatus can't be called
     //inside this call stack context (it throws an exception otherwise)
     setTimeout( function() {
@@ -24,20 +45,37 @@ lightApp.controller('LightCtrl', ['$scope', '$timeout', 'hueBridgeInitializer', 
                                       user = hue_user;
                                       $scope.status = "";
                                       user.getFullState( function(state) {
-					  var lights = [];
+					  $scope.lights = [];
 					  var i = 0;
 					  while(state.lights[++i]) {
 					      state.lights[i].hueID = i;
-					      state.lights[i].isSelected = true;
-					      lights.push(state.lights[i]);
+					      //state.lights[i].isSelected = true;
+					      $scope.lights.push(state.lights[i]);
 					  }
-                                          $scope.lights = lights;
+					  loadFromSelectedBulbStorage();
 					  updateSelectedState();
                                           // to update the view since we aren't using an AngularJS service
                                           $scope.$apply();
                                       });
                                   });
     });
+    var loadFromSelectedBulbStorage = function() {
+	// If we don't have the bulbs setup in local storage, select them all
+	// and init the bulb storage array
+	//delete localStorage['selectedBulbs']
+	if (!selectedBulbStorage.isInit()) {
+	    var bulbs = [];
+	    $scope.lights.forEach( function(light) {
+		light.isSelected = true;
+		bulbs.push(light.hueID);
+	    });
+	    selectedBulbStorage.init(bulbs);
+	} else {
+	    $scope.lights.forEach( function(light) {
+		light.isSelected = selectedBulbStorage.isBulbSelected(light.hueID);
+	    });
+	}
+    }
     // Setup defaults for our selection 'light'
     $scope.selection = {};
     $scope.lightToHex = function(light) {
@@ -64,7 +102,8 @@ lightApp.controller('LightCtrl', ['$scope', '$timeout', 'hueBridgeInitializer', 
 	};
 	var setSelectedProp = function(prop) {
 	    var m = matcher(function(p, c) { return p && c && p.state[prop] == c.state[prop]; });
-	    var matchedLight = selectedLights.reduce(m);
+	    var areSelectedLights = selectedLights.length > 0;
+	    var matchedLight = areSelectedLights ? selectedLights.reduce(m) : undefined;
 	    if (matchedLight) {
 		$scope.selection[prop] = matchedLight.state[prop];
 	    } else {
@@ -97,15 +136,25 @@ lightApp.controller('LightCtrl', ['$scope', '$timeout', 'hueBridgeInitializer', 
     // ---- Events ----
     $scope.toggleSelection = function () {
 	this.light.isSelected = !this.light.isSelected;
+	// trigger the light controls to update based on the new selection
 	updateSelectedState();
+	
+	// Persist the new selection in local storage
+	if (selectedBulbStorage.isBulbSelected(this.light.hueID) && !this.light.isSelected) {
+	    selectedBulbStorage.removeBulb(this.light.hueID);
+	} else if (!selectedBulbStorage.isBulbSelected(this.light.hueID) && this.light.isSelected) {
+	    selectedBulbStorage.addBulb(this.light.hueID);
+	}
     };
-    $scope.powerOn = function() {
+    $scope.powerOn = function(event) {
         this.light.state.on = true;
 	pushLightState(this.light);
+	event.stopPropagation();
     };
-    $scope.powerOff = function() {
+    $scope.powerOff = function(event) {
 	this.light.state.on = false;
 	pushLightState(this.light);
+	event.stopPropagation();
     };
     $scope.powerSelectedOn = function() {
 	$scope.selection.on = true;
