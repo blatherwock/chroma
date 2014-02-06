@@ -113,6 +113,7 @@ lightApp.controller('LightCtrl', ['$scope', '$timeout', 'hueBridgeInitializer', 
 	setSelectedProp("hue");
 	setSelectedProp("sat");
 	setSelectedProp("bri");
+	updateHuePickerBrightness();
     }
     var pushSelectedLightState = function () {
 	getSelectedLights().forEach( function(light) {
@@ -180,7 +181,7 @@ lightApp.controller('LightCtrl', ['$scope', '$timeout', 'hueBridgeInitializer', 
     }();
     $scope.hsbSelectedChange = function() {
 	hsbSliderHandler();
-	drawHuePickerBackground();
+	updateHuePickerBrightness();
     }
 
     // -- Misc Events --
@@ -221,12 +222,19 @@ lightApp.controller('LightCtrl', ['$scope', '$timeout', 'hueBridgeInitializer', 
 	}
 	
 	var color = new HSVColour(hue, sat, value);
-	$scope.selection.hue = hue / 360 * 65535;
-	$scope.selection.sat = sat / 100 * 255;
+	$scope.selection.hue = Math.floor(hue / 360 * 65535);
+	$scope.selection.sat = Math.floor(sat / 100 * 255);
 	pushSelectedLightState();
-	$('.lightControls').css('background-color', color.getCSSIntegerRGB());
     }
     var huePicker = $('#huePicker')[0];
+    var updateHuePickerBrightness = function() {
+	var bri = 1;
+	if ($scope.selection.bri) {
+	    bri = ($scope.selection.bri / 255) * 0.5 + 0.5;
+	}
+	var shade = Math.max(1 - bri, 0);
+	$('#huePickerBrightness').css('opacity', shade);
+    }
     var drawHuePickerBackground = function () {
 	var ctx = huePicker.getContext('2d');
 	var canvasHeight = huePicker.height;
@@ -249,9 +257,6 @@ lightApp.controller('LightCtrl', ['$scope', '$timeout', 'hueBridgeInitializer', 
 	    var hue = ((thetaDeg * 2) + 300) % 360;
 	    var sat = Math.pow(Math.min(h / canvasHeight, 1), 1.75) * 100;
 	    var value = 100;
-	    if ($scope.selection.bri) {
-		value = $scope.selection.bri / 255 * 100 + 50;
-	    }
 	    
 	    if (h > canvasHeight) {
 		value = 0;

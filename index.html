@@ -60,11 +60,14 @@
 	<button class="powerOff"
 		ng-click="powerSelectedOff()">Off</button>
         <br />
-	<canvas id="huePicker"
-		height="150"
-		width="300"
-		ng-click="huePickerClicked($event)"></canvas>
-	<br /><br />
+	<div class="huePickerWrapper">
+	  <canvas id="huePicker"
+		  height="150"
+		  width="300"
+		  ng-click="huePickerClicked($event)"></canvas>
+	  <div id="huePickerBrightness"
+	       ng-click="huePickerClicked($event)"></div>
+	</div>
 	<label>Brightness</label>
         <input type="range" min="0"
                max="255" class="bri"
@@ -72,19 +75,10 @@
                ng-change="hsbSelectedChange()"/>
 	<span>{{ selection.bri }}</span>
         <br />
-	<div class="color-help"></div>
 	<label>Hue</label>
-        <input type="range" class="hue" min="0"
-               max="65535"
-	       ng-model="selection.hue"
-               ng-change="hsbSelectedChange()"/>
 	<span>{{ selection.hue }}</span>
         <br />
 	<label>Saturation</label>
-        <input type="range" min="0"
-               max="255" class="sat"
-               ng-model="selection.sat"
-               ng-change="hsbSelectedChange()"/>
 	<span>{{ selection.sat }}</span>
         <br />
 	<button class="alert"
