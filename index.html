@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="app.css" />
     <script src="lib/angular.js" defer="defer"></script>
     <script src="lib/jshue.js" defer="defer"></script>
+    <script src="lib/colour.js" defer="defer"></script>
     <script src="app.js" defer="defer"></script>
     <script src="lib/jquery.js" defer="defer"></script>
     <script src="hueServices.js" defer="defer"></script>
@@ -60,8 +61,9 @@
 		ng-click="powerSelectedOff()">Off</button>
         <br />
 	<canvas id="huePicker"
-		height="200"
-		width="300"></canvas>
+		height="150"
+		width="300"
+		ng-click="huePickerClicked($event)"></canvas>
 	<br /><br />
 	<label>Brightness</label>
         <input type="range" min="0"

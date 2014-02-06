@@ -180,6 +180,7 @@ lightApp.controller('LightCtrl', ['$scope', '$timeout', 'hueBridgeInitializer', 
     }();
     $scope.hsbSelectedChange = function() {
 	hsbSliderHandler();
+	drawHuePickerBackground();
     }
 
     // -- Misc Events --
@@ -197,12 +198,73 @@ lightApp.controller('LightCtrl', ['$scope', '$timeout', 'hueBridgeInitializer', 
     $scope.save = function() {
 	
     }
-
-
-    var huePicker = $("huePicker");
-
-    var drawHuePickerBackground = function () {
-	var ctx = huePicker[0].getContext('2d');
+    $scope.huePickerClicked = function(event) {
+	var x = event.pageX - $('#huePicker').offset().left;
+	var y = event.pageY - $('#huePicker').offset().top;
 	
+	var canvasHeight = huePicker.height;
+	var canvasWidth = huePicker.width;
+	var origin = { x : canvasWidth / 2, y : canvasHeight };
+
+	var a = origin.x - x;
+	var h = Math.sqrt(Math.pow(origin.x - x, 2) + Math.pow(origin.y - y, 2));
+	var thetaRad = Math.acos(a/h);
+	var thetaDeg = thetaRad * (180 / Math.PI);
+
+	// scale to a half circle and rotate so red is all the way on the left
+	var hue = ((thetaDeg * 2) + 300) % 360;
+	var sat = Math.min(h / canvasHeight, 1) * 100;
+	var value = $scope.selection.bri / 255 * 100;
+	
+	if (h > canvasHeight) {
+	    value = 0;
+	}
+	
+	var color = new HSVColour(hue, sat, value);
+	$scope.selection.hue = hue / 360 * 65535;
+	$scope.selection.sat = sat / 100 * 255;
+	pushSelectedLightState();
+	$('.lightControls').css('background-color', color.getCSSIntegerRGB());
+    }
+    var huePicker = $('#huePicker')[0];
+    var drawHuePickerBackground = function () {
+	var ctx = huePicker.getContext('2d');
+	var canvasHeight = huePicker.height;
+	var canvasWidth = huePicker.width;
+	var origin = { x : canvasWidth / 2, y : canvasHeight };
+	for (var y = 0; y < canvasHeight; y++) {
+	    for (var x = 0; x < canvasWidth; x++) {
+		var a = origin.x - x;
+		var h = Math.sqrt(Math.pow(origin.x - x, 2) + Math.pow(origin.y - y, 2));
+		var thetaRad = Math.acos(a/h);
+		var thetaDeg = thetaRad * (180 / Math.PI);
+
+		// scale to a half circle and rotate so red is all the way on the left
+		var hue = ((thetaDeg * 2) + 300) % 360;
+		var sat = Math.pow(Math.min(h / canvasHeight, 1), 1.75) * 100;
+		var value = 100;
+		if ($scope.selection.bri) {
+		    value = $scope.selection.bri / 255 * 100 + 50;
+		}
+		
+		if (h > canvasHeight) {
+		    value = 0;
+		}
+		
+		var color = new HSVColour(hue, sat, value);
+		
+		ctx.fillStyle = color.getCSSIntegerRGB();
+		ctx.fillRect(x, y, 2, 2);
+	    }
+	}
+	//stroke the edge of the semicircle to smooth it out
+	ctx.fillStyle = null;
+	ctx.strokeStyle = 'rgb(10,10,10)';
+	ctx.lineWidth = 3;
+	ctx.beginPath();
+	ctx.arc(origin.x, origin.y, canvasHeight, 0, Math.PI, true);
+	ctx.stroke();
     };
+
+    drawHuePickerBackground();
 }]);
