@@ -232,31 +232,41 @@ lightApp.controller('LightCtrl', ['$scope', '$timeout', 'hueBridgeInitializer', 
 	var canvasHeight = huePicker.height;
 	var canvasWidth = huePicker.width;
 	var origin = { x : canvasWidth / 2, y : canvasHeight };
-	for (var y = 0; y < canvasHeight; y++) {
-	    for (var x = 0; x < canvasWidth; x++) {
-		var a = origin.x - x;
-		var h = Math.sqrt(Math.pow(origin.x - x, 2) + Math.pow(origin.y - y, 2));
-		var thetaRad = Math.acos(a/h);
-		var thetaDeg = thetaRad * (180 / Math.PI);
 
-		// scale to a half circle and rotate so red is all the way on the left
-		var hue = ((thetaDeg * 2) + 300) % 360;
-		var sat = Math.pow(Math.min(h / canvasHeight, 1), 1.75) * 100;
-		var value = 100;
-		if ($scope.selection.bri) {
-		    value = $scope.selection.bri / 255 * 100 + 50;
-		}
-		
-		if (h > canvasHeight) {
-		    value = 0;
-		}
-		
-		var color = new HSVColour(hue, sat, value);
-		
-		ctx.fillStyle = color.getCSSIntegerRGB();
-		ctx.fillRect(x, y, 2, 2);
+	var imageData = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
+	var pixels = imageData.data;
+
+	for (var i = 0; i < pixels.length; i += 4) {
+	    var x = (i / 4) % canvasWidth;
+	    var y = Math.floor((i / 4) / canvasWidth);
+	
+	    var a = origin.x - x;
+	    var h = Math.sqrt(Math.pow(origin.x - x, 2) + Math.pow(origin.y - y, 2));
+	    var thetaRad = Math.acos(a/h);
+	    var thetaDeg = thetaRad * (180 / Math.PI);
+
+	    // scale to a half circle and rotate so red is all the way on the left
+	    var hue = ((thetaDeg * 2) + 300) % 360;
+	    var sat = Math.pow(Math.min(h / canvasHeight, 1), 1.75) * 100;
+	    var value = 100;
+	    if ($scope.selection.bri) {
+		value = $scope.selection.bri / 255 * 100 + 50;
 	    }
+	    
+	    if (h > canvasHeight) {
+		value = 0;
+	    }
+	    
+	    var color = new HSVColour(hue, sat, value);
+	    var colorRGB = color.getRGB();
+	    pixels[i]   = colorRGB.r;
+	    pixels[i+1] = colorRGB.g;
+	    pixels[i+2] = colorRGB.b;
+	    pixels[i+3] = 255;
 	}
+	ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+	ctx.putImageData(imageData, 0, 0);
+	
 	//stroke the edge of the semicircle to smooth it out
 	ctx.fillStyle = null;
 	ctx.strokeStyle = 'rgb(10,10,10)';
