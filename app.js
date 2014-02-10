@@ -49,7 +49,6 @@ lightApp.controller('LightCtrl', ['$scope', '$timeout', 'hueBridgeInitializer', 
 					  var i = 0;
 					  while(state.lights[++i]) {
 					      state.lights[i].hueID = i;
-					      //state.lights[i].isSelected = true;
 					      $scope.lights.push(state.lights[i]);
 					  }
 					  loadFromSelectedBulbStorage();
@@ -62,7 +61,6 @@ lightApp.controller('LightCtrl', ['$scope', '$timeout', 'hueBridgeInitializer', 
     var loadFromSelectedBulbStorage = function() {
 	// If we don't have the bulbs setup in local storage, select them all
 	// and init the bulb storage array
-	//delete localStorage['selectedBulbs']
 	if (!selectedBulbStorage.isInit()) {
 	    var bulbs = [];
 	    $scope.lights.forEach( function(light) {
@@ -82,7 +80,8 @@ lightApp.controller('LightCtrl', ['$scope', '$timeout', 'hueBridgeInitializer', 
 	var hue = (light.state.hue / 65535) * 360;
 	var sat = (light.state.sat / 255) * 100;
 	var li  = (light.state.bri / 255) * 75 + 25;
-	return "hsl(" + hue + ", " + sat + "%, " + li + "%)";
+	var color = new HSVColour(hue, sat, li);
+	return color.getCSSHSL();
     };
     var getSelectedLights = function () {
 	var selected = function(l) { return l.isSelected; };
@@ -113,7 +112,17 @@ lightApp.controller('LightCtrl', ['$scope', '$timeout', 'hueBridgeInitializer', 
 	setSelectedProp("hue");
 	setSelectedProp("sat");
 	setSelectedProp("bri");
-	updateHuePickerBrightness();
+	setSelectedProp("on");
+
+	if (!$scope.selection.color) {
+	    $scope.selection.color = {};
+	}
+	if ($scope.selection.hue)
+	    $scope.selection.color.h = Math.floor($scope.selection.hue / 65535 * 360);
+	if ($scope.selection.sat)
+	    $scope.selection.color.s = Math.floor($scope.selection.sat / 255 * 100);
+	if ($scope.selection.bri)
+	    $scope.selection.color.b = Math.floor($scope.selection.bri / 255 * 100);
     }
     var pushSelectedLightState = function () {
 	getSelectedLights().forEach( function(light) {
@@ -132,6 +141,7 @@ lightApp.controller('LightCtrl', ['$scope', '$timeout', 'hueBridgeInitializer', 
 	    sat : parseInt(light.state.sat, 10),
 	    bri : parseInt(light.state.bri, 10),
 	    effect : light.state.effect,
+	    transitiontime : 20,
 	});
     };
     // ---- Events ----
@@ -147,139 +157,39 @@ lightApp.controller('LightCtrl', ['$scope', '$timeout', 'hueBridgeInitializer', 
 	    selectedBulbStorage.addBulb(this.light.hueID);
 	}
     };
-    $scope.powerOn = function(event) {
-        this.light.state.on = true;
+    $scope.togglePower = function(event) {
+        this.light.state.on = !this.light.state.on;
 	pushLightState(this.light);
 	event.stopPropagation();
     };
-    $scope.powerOff = function(event) {
-	this.light.state.on = false;
-	pushLightState(this.light);
-	event.stopPropagation();
-    };
-    $scope.powerSelectedOn = function() {
-	$scope.selection.on = true;
+    $scope.togglePowerSelected = function() {
+	if ($scope.selection.on == undefined) {
+	    $scope.selection.on = true;
+	} else {
+	    $scope.selection.on = !$scope.selection.on;
+	}
 	pushSelectedLightState();
     };
-    $scope.powerSelectedOff = function() {
-	$scope.selection.on = false;
-	pushSelectedLightState();
-    };
-
-    // -- Slider Events --
-    var hsbSliderHandler = function () {
-	var timeoutID;
-	return function() {
-	    if (timeoutID != null) {
-		$timeout.cancel(timeoutID);
-	    }
-	    timeoutID = $timeout( function() {
-		pushSelectedLightState();
-		timeoutID = null;
-	    }, 100);
-	}	    
-    }();
-    $scope.hsbSelectedChange = function() {
-	hsbSliderHandler();
-	updateHuePickerBrightness();
-    }
 
     // -- Misc Events --
     $scope.selectedAlert = function() {
 	alertSelectedLights();
     };
-    $scope.startSelectedColorLoop = function() {
-	$scope.selection.effect = "colorloop";
+    $scope.toggleSelectedColorLoop = function() {
+	if (!$scope.selection.effect || $scope.selection.effect == "none") {
+	    $scope.selection.effect = "colorloop";
+	} else {
+	    $scope.selection.effect = "none";	    
+	}
 	pushSelectedLightState();
     };
-    $scope.stopSelectedColorLoop = function() {
-	$scope.selection.effect = "none";
+    $scope.updateColor = function() {
+	$scope.selection.hue = Math.floor($scope.selection.color.h / 360 * 65535);
+	$scope.selection.sat = Math.floor($scope.selection.color.s / 100 * 255);
 	pushSelectedLightState();
     };
-    $scope.save = function() {
-	
-    }
-    $scope.huePickerClicked = function(event) {
-	var x = event.pageX - $('#huePicker').offset().left;
-	var y = event.pageY - $('#huePicker').offset().top;
-	
-	var canvasHeight = huePicker.height;
-	var canvasWidth = huePicker.width;
-	var origin = { x : canvasWidth / 2, y : canvasHeight };
-
-	var a = origin.x - x;
-	var h = Math.sqrt(Math.pow(origin.x - x, 2) + Math.pow(origin.y - y, 2));
-	var thetaRad = Math.acos(a/h);
-	var thetaDeg = thetaRad * (180 / Math.PI);
-
-	// scale to a half circle and rotate so red is all the way on the left
-	var hue = ((thetaDeg * 2) + 300) % 360;
-	var sat = Math.min(h / canvasHeight, 1) * 100;
-	var value = $scope.selection.bri / 255 * 100;
-	
-	if (h > canvasHeight) {
-	    value = 0;
-	}
-	
-	var color = new HSVColour(hue, sat, value);
-	$scope.selection.hue = Math.floor(hue / 360 * 65535);
-	$scope.selection.sat = Math.floor(sat / 100 * 255);
+    $scope.updateBrightness = function() {
+	$scope.selection.bri = Math.floor($scope.selection.color.b / 100 * 255);
 	pushSelectedLightState();
-    }
-    var huePicker = $('#huePicker')[0];
-    var updateHuePickerBrightness = function() {
-	var bri = 1;
-	if ($scope.selection.bri) {
-	    bri = ($scope.selection.bri / 255) * 0.5 + 0.5;
-	}
-	var shade = Math.max(1 - bri, 0);
-	$('#huePickerBrightness').css('opacity', shade);
-    }
-    var drawHuePickerBackground = function () {
-	var ctx = huePicker.getContext('2d');
-	var canvasHeight = huePicker.height;
-	var canvasWidth = huePicker.width;
-	var origin = { x : canvasWidth / 2, y : canvasHeight };
-
-	var imageData = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
-	var pixels = imageData.data;
-
-	for (var i = 0; i < pixels.length; i += 4) {
-	    var x = (i / 4) % canvasWidth;
-	    var y = Math.floor((i / 4) / canvasWidth);
-	
-	    var a = origin.x - x;
-	    var h = Math.sqrt(Math.pow(origin.x - x, 2) + Math.pow(origin.y - y, 2));
-	    var thetaRad = Math.acos(a/h);
-	    var thetaDeg = thetaRad * (180 / Math.PI);
-
-	    // scale to a half circle and rotate so red is all the way on the left
-	    var hue = ((thetaDeg * 2) + 300) % 360;
-	    var sat = Math.pow(Math.min(h / canvasHeight, 1), 1.75) * 100;
-	    var value = 100;
-	    
-	    if (h > canvasHeight) {
-		value = 0;
-	    }
-	    
-	    var color = new HSVColour(hue, sat, value);
-	    var colorRGB = color.getRGB();
-	    pixels[i]   = colorRGB.r;
-	    pixels[i+1] = colorRGB.g;
-	    pixels[i+2] = colorRGB.b;
-	    pixels[i+3] = 255;
-	}
-	ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-	ctx.putImageData(imageData, 0, 0);
-	
-	//stroke the edge of the semicircle to smooth it out
-	ctx.fillStyle = null;
-	ctx.strokeStyle = 'rgb(10,10,10)';
-	ctx.lineWidth = 3;
-	ctx.beginPath();
-	ctx.arc(origin.x, origin.y, canvasHeight, 0, Math.PI, true);
-	ctx.stroke();
     };
-
-    drawHuePickerBackground();
 }]);

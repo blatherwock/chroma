@@ -1,0 +1,136 @@
+body {
+    width: 396px;
+    overflow-x: hidden;
+    color: white;
+    background-color: #202020;
+}
+li {
+    padding-top: 15px;
+}
+.name {
+    font-weight: bold;
+    font-size: 16px;
+}
+button {
+    border-radius: 9999px;
+    padding: 5px;
+    background-color: #222;
+    border: 0px solid #000;
+    cursor: pointer;
+    color: #FFF;
+    font-size: 18px;
+    width: 35px;
+    height: 35px;
+    margin: 0 6px;
+}
+button {
+    box-shadow: 0px 0px 3px 1px rgba(150,150,150,0.5);
+}
+button:hover {
+    box-shadow: 0px 0px 3px 1px rgba(150,150,150,0.9);
+}
+button.powertrue {
+    color: #FFF;
+}
+button.powerfalse {
+    color: #999;
+}
+.alert {
+    color: #DDD;
+}
+.alert:hover {
+    -webkit-animation-duration: 0.75s;
+    -webkit-animation-name: blink;
+    -webkit-animation-iteration-count: infinite;
+    -webkit-animation-direction: alternate;
+    -webkit-animation-timing-function: linear;
+}
+@-webkit-keyframes blink {
+  from {
+      color: #999;
+  }
+  to {
+      color: #FFF;
+  }
+}
+.colorloop::before {
+    background: linear-gradient(to right, red, yellow, green, red);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-size: 17px;
+    background-position: 0px;
+}
+.effectcolorloop.colorloop::before {
+    -webkit-animation-duration: 2s;
+    -webkit-animation-name: colorloop;
+    -webkit-animation-iteration-count: infinite;
+    -webkit-animation-timing-function: linear;
+}
+@-webkit-keyframes colorloop {
+  from {
+      background-position: 0px;
+  }
+  to {
+      background-position: 17px;
+  }
+}
+
+.lights {
+    max-height: 480px;
+    overflow-y: auto;
+}
+.light {
+    display: inline-block;
+    text-align: center;
+    padding: 15px;
+    margin: 20px 15px;
+    max-width: 70px;
+    border-radius: 15px;
+    cursor: pointer;
+}
+.light:hover {
+    box-shadow: 0px 0px 15px 0px rgba(100,250,250,0.5);
+}
+.selectedtrue,
+.selectedtrue:hover{
+    box-shadow: 0px 0px 15px 0px rgba(10,250,250,1);
+}
+.lightBulb {
+    width: 60px;
+    height: 100px;
+    margin: 5px;
+    display: block;
+}
+
+.lightButtons {
+    margin-bottom: 10px;
+}
+.colorInfo {
+    margin-top: 10px;
+}
+.lightControls {
+    width: 350px;
+    padding: 15px;
+    margin: 10px auto;
+    text-align: center;
+    border-top: 1px solid rgba(155, 155, 155, 0.3);
+}
+
+.huePickerWrapper {
+    position: relative;
+    width: 350px;
+}
+#huePicker {
+    width: 300px;
+    height: 150px;
+}
+#huePickerShade {
+    position: absolute;
+    top: 0;
+    left: 25px;
+    width: 300px;
+    height: 150px;
+    background-color: #000;
+    opacity: 0;
+    border-radius: 9999px 9999px 0 0;
+}

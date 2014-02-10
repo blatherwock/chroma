@@ -3,14 +3,16 @@
   <head>
     <meta charset="utf-8" />
     <title>Chroma Lights Controller</title>
-    <link rel="stylesheet" href="reset.css" />
-    <link rel="stylesheet" href="app.css" />
+    <link rel="stylesheet" href="css/reset.css" />
+    <link rel="stylesheet" href="css/app.css" />
+    <link rel="stylesheet" href="css/chroma_icons.css" />
     <script src="lib/angular.js" defer="defer"></script>
     <script src="lib/jshue.js" defer="defer"></script>
     <script src="lib/colour.js" defer="defer"></script>
     <script src="app.js" defer="defer"></script>
     <script src="lib/jquery.js" defer="defer"></script>
     <script src="hueServices.js" defer="defer"></script>
+    <script src="colorPicker.js" defer="defer"></script>
   </head>
   <body ng-controller="LightCtrl">
     <div>
@@ -46,47 +48,28 @@
 	      <use xlink:href="#bulbPath" style="fill: url(#grayBulbGradient); stroke: #a8a8a8; stroke-width: 1.2;"/>
 	    </g>
 	  </svg>
-	  <div class="powerButtonWrapper powerButtonOn{{light.state.on}}">
-	    <button class="powerOn"
-                    ng-click="powerOn($event)">On</button>
-	    <button class="powerOff"
-		    ng-click="powerOff($event)">Off</button>
-	  </div>
+	  <button class="power{{light.state.on}} power icon-power"
+		  title="Toggle Bulb On/Off"
+                  ng-click="togglePower($event)"></button>
         </li>
       </ul>
       <div class="lightControls">
-	<button class="powerOn"
-                ng-click="powerSelectedOn()">On</button>
-	<button class="powerOff"
-		ng-click="powerSelectedOff()">Off</button>
-        <br />
-	<div class="huePickerWrapper">
-	  <canvas id="huePicker"
-		  height="150"
-		  width="300"
-		  ng-click="huePickerClicked($event)"></canvas>
-	  <div id="huePickerBrightness"
-	       ng-click="huePickerClicked($event)"></div>
+	<div class="lightButtons">
+	  <button class="power{{selection.on}} power icon-power"
+                  ng-click="togglePowerSelected()"></button>
+	  <button class="alert icon-lightbulb"
+		  title="Flash Bulb"
+                  ng-click="selectedAlert()"></button>
+	  <button class="effect{{ selection.effect }} colorloop icon-lightbulb"
+		  title="Toggle Colorloop"
+                  ng-click="toggleSelectedColorLoop()"></button>
 	</div>
-	<label>Brightness</label>
-        <input type="range" min="0"
-               max="255" class="bri"
-	       ng-model="selection.bri"
-               ng-change="hsbSelectedChange()"/>
-	<span>{{ selection.bri }}</span>
-        <br />
-	<label>Hue</label>
-	<span>{{ selection.hue }}</span>
-        <br />
-	<label>Saturation</label>
-	<span>{{ selection.sat }}</span>
-        <br />
-	<button class="alert"
-                ng-click="selectedAlert()">Alert</button>
-	<button class="colorloop"
-                ng-click="startSelectedColorLoop()">Color Loop</button>
-	<button class="stopColorLoop"
-                ng-click="stopSelectedColorLoop()">Stop Color Loop</button>
+	<color-picker on-color-change="updateColor()"
+		      on-brightness-change="updateBrightness()"
+		      ng-model="selection.color" ></color-picker>
+	<div class="colorInfo">
+	  <span>Hue: {{ selection.hue }},  Saturation: {{ selection.sat }}</span>
+	</div>
       </div>
     </div>
   </body>
