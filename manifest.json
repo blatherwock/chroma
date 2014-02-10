@@ -11,15 +11,15 @@
 
 
     "icons" : {
-	"16" : "icon_16.png",
-	"48" : "icon_48.png",
-	"128" : "icon_128.png"
+	"16" : "icons/icon_16.png",
+	"48" : "icons/icon_48.png",
+	"128" : "icons/icon_128.png"
     },
 
     "browser_action" : {
 	"default_icon" : {
-	    "19" : "icon_19.png",
-	    "38" : "icon_38.png"
+	    "19" : "icons/icon_19.png",
+	    "38" : "icons/icon_38.png"
 	},
 	"default_popup" : "index.html"
     }
