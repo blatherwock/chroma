@@ -1,8 +1,11 @@
+@import url(http://fonts.googleapis.com/css?family=Lato);
+
 body {
     width: 396px;
     overflow-x: hidden;
     color: white;
     background-color: #202020;
+    font-family: 'Lato', sans-serif;
 }
 li {
     padding-top: 15px;

@@ -161,6 +161,7 @@ lightApp.controller('LightCtrl', ['$scope', '$timeout', 'hueBridgeInitializer', 
         this.light.state.on = !this.light.state.on;
 	pushLightState(this.light);
 	event.stopPropagation();
+	updateSelectedState();
     };
     $scope.togglePowerSelected = function() {
 	if ($scope.selection.on == undefined) {
