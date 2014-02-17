@@ -12,6 +12,7 @@ lightApp.filter('printBool', function() {
 
 lightApp.controller('LightCtrl', ['$scope', '$timeout', 'hueBridgeInitializer', function($scope, $timeout, hueBridgeInitializer) {
     var user;
+    $scope.preAuth = true;
     var updateStatus = function(newStatus) {
         $scope.status = newStatus;
         $scope.$apply();
@@ -42,6 +43,7 @@ lightApp.controller('LightCtrl', ['$scope', '$timeout', 'hueBridgeInitializer', 
     setTimeout( function() {
         hueBridgeInitializer.init(updateStatus,
                                   /*success*/ function(hue_user) {
+				      $scope.preAuth = false;
                                       user = hue_user;
                                       $scope.status = "";
                                       user.getFullState( function(state) {

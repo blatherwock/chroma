@@ -15,9 +15,9 @@
     <script src="js/hueServices.js" defer="defer"></script>
     <script src="js/colorPicker.js" defer="defer"></script>
   </head>
-  <body ng-controller="LightCtrl">
+  <body ng-controller="LightCtrl" class="preAuth{{ preAuth }}">
     <div>
-      <span>{{status}}</span>
+      <div class="status">{{status}}</div>
       <ul class="lights">
         <li ng-repeat="light in lights"
 	    class="light selected{{light.isSelected}}"
