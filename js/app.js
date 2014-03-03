@@ -1,15 +1,5 @@
 var lightApp = angular.module('lightApp', []);
 
-lightApp.filter('printBool', function() {
-    return function(input, reverse) {
-        if ((input && !reverse) || (!input && reverse))
-            return "On";
-        else
-            return "Off";
-    }
-});
-
-
 lightApp.controller('LightCtrl', ['$scope', '$timeout', 'hueBridgeInitializer', function($scope, $timeout, hueBridgeInitializer) {
     var user;
     $scope.preAuth = true;
@@ -173,6 +163,20 @@ lightApp.controller('LightCtrl', ['$scope', '$timeout', 'hueBridgeInitializer', 
 	}
 	pushSelectedLightState();
     };
+    var colorChangeHandler = function () {
+	var timeoutID;
+	return function() {
+	    if (timeoutID != null) {
+		$timeout.cancel(timeoutID);
+	    }
+	    timeoutID = $timeout( function() {
+		$scope.selection.hue = Math.floor($scope.selection.color.h / 360 * 65535);
+		$scope.selection.sat = Math.floor($scope.selection.color.s / 100 * 255);
+		pushSelectedLightState();
+		timeoutID = null;
+	    }, 100);
+	}	    
+    }();
 
     // -- Misc Events --
     $scope.selectedAlert = function() {
@@ -187,9 +191,7 @@ lightApp.controller('LightCtrl', ['$scope', '$timeout', 'hueBridgeInitializer', 
 	pushSelectedLightState();
     };
     $scope.updateColor = function() {
-	$scope.selection.hue = Math.floor($scope.selection.color.h / 360 * 65535);
-	$scope.selection.sat = Math.floor($scope.selection.color.s / 100 * 255);
-	pushSelectedLightState();
+	colorChangeHandler();
     };
     $scope.updateBrightness = function() {
 	$scope.selection.bri = Math.floor($scope.selection.color.b / 100 * 255);
