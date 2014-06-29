@@ -8,33 +8,25 @@ lightApp.directive('colorPicker', function() {
 	    onBrightnessChange: '&',
 	},
 	template:
-	'<div>' +
 	    '<div class="huePickerWrapper">' +
 	    '<canvas id="huePicker" height="150" width="300"'+
 	             'ng-click="huePickerClicked($event)" ></canvas>' +
-	    '<div id="huePickerShade" ng-click="huePickerClicked($event)" draggable="false"></div>' +
+	    '<div id="huePickerShade"></div>' +
+	    '<div id="huePickerCursorWrapper">' + 
 	    '<div id="huePickerCursor" style="top:{{selected.y}}px; ' +
 	                                     'left:{{selected.x}}px; ' +
-	                                     'background-color:{{selected.color}}"></div>' +
+	                                     'background-color:{{selected.color}}"></div></div>' +
 	    '</div>' +
-	    '<label>Brightness: </label>' +
-	    '<input type="range" min="0" max="100" class="bri" ' +
-	    'ng-model="ngModel.b" ng-change="briSelectedChange()"/>' +
-	    '</div>',
+	    '<slider ng-model="ngModel.b" on-slider-change="onSliderChange()"/>',
 	controller : function($scope, $timeout, $document) {
 	    var huePicker = $('#huePicker')[0];
 	    $scope.selected = {};
-	    $scope.huePickerClicked = function(event) {
-		var x = event.pageX - $('#huePicker').offset().left;
-		var y = event.pageY - $('#huePicker').offset().top;
-
-		updateCursor(x, y);
-	    }
-	    var dragging = false;
 	    var cursorMouseDown = function(event) {
 		event.preventDefault();
 		$document.on('mousemove', cursorMouseMove);
 		$document.on('mouseup', cursorMouseUp);
+		// for the single clicks:
+		cursorMouseMove(event);
 	    }
 	    var cursorMouseUp = function(event) {
 		$document.unbind('mousemove', cursorMouseMove);
@@ -47,7 +39,7 @@ lightApp.directive('colorPicker', function() {
 		updateCursor(x, y);
 		$scope.$apply();
 	    }
-	    $('#huePickerShade').mousedown(cursorMouseDown);
+	    $('#huePickerCursorWrapper').mousedown(cursorMouseDown);
 	    var updateCursor = function(x, y) {
 		$scope.selected.x = x - 7;
 		$scope.selected.y = y - 7;
@@ -63,7 +55,6 @@ lightApp.directive('colorPicker', function() {
 		$scope.selected.color = color.getCSSIntegerRGB();
 
 		$scope.onColorChange();
-
 	    }
 	    var briSliderHandler = function () {
 		var timeoutID;
@@ -77,14 +68,14 @@ lightApp.directive('colorPicker', function() {
 		    }, 100);
 		}	    
 	    }();
-	    $scope.briSelectedChange = function() {
-		briSliderHandler();
+	    $scope.onSliderChange = function () {
+		briSliderHandler()
 		updateHuePickerShade();
 	    }
 	    var updateHuePickerShade = function() {
 		var newVal = $scope.ngModel.b;
 		var bri = 1;
-		if (newVal) {
+		if (newVal != undefined) {
 		    bri = (newVal / 100) * 0.5 + 0.5;
 		}
 		var shade = Math.max(1 - bri, 0);
