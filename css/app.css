@@ -78,7 +78,8 @@ button.powerfalse {
     background-size: 17px;
     background-position: 0px;
 }
-.effectcolorloop.colorloop::before {
+.effectcolorloop.colorloop::before,
+.colorloop:hover::before {
     -webkit-animation-duration: 2s;
     -webkit-animation-name: colorloop;
     -webkit-animation-iteration-count: infinite;
@@ -122,9 +123,6 @@ button.powerfalse {
 
 .lightButtons {
     margin-bottom: 10px;
-}
-.colorInfo {
-    margin-top: 10px;
 }
 .lightControls {
     width: 350px;
