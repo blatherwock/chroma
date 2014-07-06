@@ -121,7 +121,9 @@ lightApp.controller('LightCtrl', ['$scope', '$timeout', 'hueBridgeInitializer', 
 			var lightState = light.state,
 			selecState = $scope.selection;
 			for (prop in selecState) {
-				lightState[prop] = selecState[prop];
+				if (!isNaN(selecState[prop])) {
+					lightState[prop] = selecState[prop];
+				}
 			}
 			pushLightState(light);
 		});
