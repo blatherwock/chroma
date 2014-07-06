@@ -1,7 +1,7 @@
-lightApp.directive('colorPicker', function() {
+lightApp.directive('colorPicker', ['$document', '$timeout', function($document, $timeout) {
     return {
 	restrict: 'E',
-	require: '^ngModel',
+	require: 'ngModel',
 	scope: {
 	    ngModel: '=',
 	    onColorChange: '&',
@@ -17,10 +17,69 @@ lightApp.directive('colorPicker', function() {
 	                                     'left:{{selected.x}}px; ' +
 	                                     'background-color:{{selected.color}}"></div></div>' +
 	    '</div>' +
-	    '<slider ng-model="ngModel.b" on-slider-change="onSliderChange()"/>',
-	controller : function($scope, $timeout, $document) {
+	    '<slider ng-model="ngModel.b"/>',
+	link: function($scope, elem, attrs, ngModelController) {
 	    var huePicker = $('#huePicker')[0];
 	    $scope.selected = {};
+
+	    ngModelController.$render = function() {
+		var model = ngModelController.$viewValue;
+		if (model !== undefined && model.h !== undefined && model.s !== undefined) {
+		    var coordinates = getCoordinatesOf(model.h, model.s);
+		    updateCursor(coordinates.x, coordinates.y);
+		}
+	    };
+
+	    // --- Setup Model Watches --- //
+	    $scope.$watch('ngModel.b', function() {
+		if ($scope.ngModel !== undefined && $scope.ngModel.b !== undefined) {
+		    $scope.onBrightnessChange();
+		}
+	    });
+	    $scope.$watchCollection('ngModel', function(newVal) {
+		if (newVal && newVal.b) {
+		    updateHuePickerShade();
+		}
+	    });
+
+
+	    // --- Update Methods --- //
+	    var updateCursor = function(x, y) {
+		$scope.selected.x = x - 7;
+		$scope.selected.y = y - 7;
+
+		var color = getColorAt(x, y);
+		var hsv = color.getHSV();
+		var bri = 75;
+		if($scope.ngModel !== undefined && $scope.ngModel.b !== undefined) {
+		    bri = ($scope.ngModel.b * 0.5) + 50;
+		}
+
+		// update cursor
+		var color = new HSVColour(hsv.h, hsv.s, bri);
+		$scope.selected.color = color.getCSSIntegerRGB();
+
+	    };
+	    var updateHuePickerShade = function() {
+		var newVal = $scope.ngModel.b;
+		var bri = 1;
+		if (newVal != undefined) {
+		    bri = (newVal / 100) * 0.5 + 0.5;
+		}
+		var shade = Math.max(1 - bri, 0);
+		$('#huePickerShade').css('opacity', shade);
+	    }
+	    var updateModel = function(x, y) {
+		var color = getColorAt(x, y);
+		var hsv = color.getHSV();
+
+		$scope.ngModel.h = Math.floor(hsv.h);
+		$scope.ngModel.s = Math.floor(hsv.s);
+
+		$scope.onColorChange();
+	    }
+
+	    // --- Mouse Events --- //
 	    var cursorMouseDown = function(event) {
 		event.preventDefault();
 		$document.on('mousemove', cursorMouseMove);
@@ -37,57 +96,13 @@ lightApp.directive('colorPicker', function() {
 		var y = event.pageY - $('#huePicker').offset().top;
 
 		updateCursor(x, y);
+		updateModel(x, y);
 		$scope.$apply();
 	    }
 	    $('#huePickerCursorWrapper').mousedown(cursorMouseDown);
-	    var updateCursor = function(x, y) {
-		$scope.selected.x = x - 7;
-		$scope.selected.y = y - 7;
 
-		var color = getColorAt(x, y);
-		var hsv = color.getHSV();
 
-		$scope.ngModel.h = Math.floor(hsv.h);
-		$scope.ngModel.s = Math.floor(hsv.s);
-
-		// update cursor
-		var color = new HSVColour(hsv.h, hsv.s, $scope.ngModel.b);
-		$scope.selected.color = color.getCSSIntegerRGB();
-
-		$scope.onColorChange();
-	    }
-	    var briSliderHandler = function () {
-		var timeoutID;
-		return function() {
-		    if (timeoutID != null) {
-			$timeout.cancel(timeoutID);
-		    }
-		    timeoutID = $timeout( function() {
-			$scope.onBrightnessChange();
-			timeoutID = null;
-		    }, 100);
-		}	    
-	    }();
-	    $scope.onSliderChange = function () {
-		briSliderHandler()
-		updateHuePickerShade();
-	    }
-	    var updateHuePickerShade = function() {
-		var newVal = $scope.ngModel.b;
-		var bri = 1;
-		if (newVal != undefined) {
-		    bri = (newVal / 100) * 0.5 + 0.5;
-		}
-		var shade = Math.max(1 - bri, 0);
-		$('#huePickerShade').css('opacity', shade);
-	    }
-
-	    $scope.$watchCollection('ngModel', function(newVal) {
-		if (newVal && newVal.b) {
-		    updateHuePickerShade();
-		}
-	    });
-
+	    // --- Canvas Color Methods ---//
 	    var drawHuePickerBackground = function () {
 		var ctx = huePicker.getContext('2d');
 		var canvasHeight = huePicker.height;
@@ -126,9 +141,9 @@ lightApp.directive('colorPicker', function() {
 		var canvasWidth = huePicker.width;
 		var origin = { x : canvasWidth / 2, y : canvasHeight };
 		
-		var a = origin.x - x;
+		var adj = origin.x - x;
 		var h = Math.sqrt(Math.pow(origin.x - x, 2) + Math.pow(origin.y - y, 2));
-		var thetaRad = Math.acos(a/h);
+		var thetaRad = Math.acos(adj/h);
 		var thetaDeg = thetaRad * (180 / Math.PI);
 
 		// scale to a half circle and rotate so red is all the way on the left
@@ -141,9 +156,25 @@ lightApp.directive('colorPicker', function() {
 		}
 		
 		return new HSVColour(hue, sat, value, alpha);		
-	    }
+	    };
+	    var getCoordinatesOf = function(hue, sat) {
+		var canvasHeight = huePicker.height;
+		var canvasWidth = huePicker.width;
+		var origin = { x : canvasWidth / 2, y : canvasHeight };
+
+		var thetaDeg = (((hue - 300 % 360) + 360) % 360) / 2;
+		var thetaRad = thetaDeg * (Math.PI / 180);
+		var h = (sat / 100) * canvasHeight;
+		var adj = Math.cos(thetaRad) * h;
+		var opp = Math.sqrt(Math.pow(h, 2) - Math.pow(adj, 2));
+
+		var x = origin.x - adj;
+		var y = canvasHeight - opp;
+		
+		return {x : x, y : y};
+	    };
 
 	    drawHuePickerBackground();
 	},
     };
-});
+}]);

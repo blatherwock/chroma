@@ -1,39 +1,63 @@
-lightApp.directive('slider', function() {
+lightApp.directive('slider', ['$document', function($document) {
     return {
 	restrict: 'E',
-	require: '^ngModel',
-	scope: {
-	    ngModel: '=',
-	    onSliderChange: '&',
-	},
+	require: 'ngModel',
 	template:'<div class="brightnessSlider"><div class="brightnessCursor"></div></div>',
-	controller: function($scope, $timeout, $document) {
-	    var sliderMouseDown = function(event) {
-		event.preventDefault();
-		$document.on('mousemove', sliderMouseMove);
-		$document.on('mouseup', sliderMouseUp);
-		//for single clicks
-		sliderMouseMove(event);
+	link: function($scope, elem, attrs, ngModelController) {
+
+	    ngModelController.$render = function() {
+		updateSliderFromValue(ngModelController.$viewValue);
+	    };
+
+	    // --- Slider Update Methods --- //
+	    var brightnessSliderWidth = function() {
+		return $('.brightnessSlider').width() - $('.brightnessCursor').width();
+	    };
+	    var updateBrightnessCursor = function(x) {
+		var safeX = Math.min(brightnessSliderWidth(), Math.max(x, 0));
+		$('.brightnessCursor').css('left', safeX);
 	    }
-	    var sliderMouseUp = function(event) {
-		$document.unbind('mousemove', sliderMouseMove);
-		$document.unbind('mouseup', sliderMouseUp);
-	    }
-	    var sliderMouseMove = function(event) {
-		var x = event.pageX - $('.brightnessSlider').offset().left - 6;
-		// bound between the 0 and the width of the slider
-		var max = $('.brightnessSlider').width() - $('.brightnessCursor').width();
+	    /* Updates the slider based on the value.
+	       value should be 0-100 */
+	    var updateSliderFromValue = function(value) {
+		var safeValue = Math.min(100, Math.max(0, value));
+
+		var newCursorX = (safeValue / 100) * brightnessSliderWidth();
+		updateBrightnessCursor(newCursorX);
+	    };
+	    /* Updates the model value based on user click.
+	       clickPageX is the page x coordinate of the click*/
+	    var updateModelFromClick = function(clickPageX) {
+		var x = clickPageX - $('.brightnessSlider').offset().left - 6;
+
+		var max = brightnessSliderWidth();
 		x = Math.min(max, Math.max(x, 0));
-		$('.brightnessCursor').css('left', x);
+		updateBrightnessCursor(x);
 
 		var realValue = x / max * 100;
-		$scope.ngModel = realValue;
-		// Have to call this asyncronously so that ngModel is completely updated by Angular
-		// before the callback listeners look to the new value.
-		$timeout($scope.onSliderChange);
-	    }
+		ngModelController.$setViewValue(realValue);
+		$scope.$apply();
+	    };
 	    
-	    $('.brightnessSlider').mousedown(sliderMouseDown);
-	},
+	    // --- Mouse Events --- //
+	    var sliderMouseDown = function(event) {
+		event.preventDefault();
+		$document.on('mousemove', sliderMouseMoveOrClick);
+		$document.on('mouseup', sliderMouseUp);
+	    };
+	    var sliderMouseUp = function(event) {
+		$document.unbind('mousemove', sliderMouseMoveOrClick);
+		$document.unbind('mouseup', sliderMouseUp);
+	    };
+	    var sliderMouseMoveOrClick = function(event) {
+		updateModelFromClick(event.pageX);
+	    };
+
+	    
+	    // --- Initialization --- //
+	    elem.on('mousedown', sliderMouseDown);
+	    elem.on('click', sliderMouseMoveOrClick);
+
+	}
     };
-});
+}]);

@@ -106,9 +106,9 @@ lightApp.controller('LightCtrl', ['$scope', '$timeout', 'hueBridgeInitializer', 
 	setSelectedProp("bri");
 	setSelectedProp("on");
 
-	if (!$scope.selection.color) {
-	    $scope.selection.color = {};
-	}
+	// Create a new color object every time so angular treats it as a changed value
+	$scope.selection.color = {};
+
 	if ($scope.selection.hue)
 	    $scope.selection.color.h = Math.floor($scope.selection.hue / 65535 * 360);
 	if ($scope.selection.sat)
@@ -133,7 +133,7 @@ lightApp.controller('LightCtrl', ['$scope', '$timeout', 'hueBridgeInitializer', 
 	    sat : parseInt(light.state.sat, 10),
 	    bri : parseInt(light.state.bri, 10),
 	    effect : light.state.effect,
-	    transitiontime : 20,
+	    transitiontime : 10,
 	});
     };
     // ---- Events ----
@@ -177,6 +177,20 @@ lightApp.controller('LightCtrl', ['$scope', '$timeout', 'hueBridgeInitializer', 
 	    }, 100);
 	}	    
     }();
+    var briChangeHandler = function () {
+	var timeoutID;
+	return function() {
+	    if (timeoutID != null) {
+		$timeout.cancel(timeoutID);
+	    }
+	    timeoutID = $timeout( function() {
+		$scope.selection.bri = Math.floor($scope.selection.color.b / 100 * 255);
+		pushSelectedLightState();
+		timeoutID = null;
+	    }, 100);
+	}	    
+    }();
+
 
     // -- Misc Events --
     $scope.selectedAlert = function() {
@@ -194,7 +208,6 @@ lightApp.controller('LightCtrl', ['$scope', '$timeout', 'hueBridgeInitializer', 
 	colorChangeHandler();
     };
     $scope.updateBrightness = function() {
-	$scope.selection.bri = Math.floor($scope.selection.color.b / 100 * 255);
-	pushSelectedLightState();
+	briChangeHandler();
     };
 }]);
