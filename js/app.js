@@ -204,10 +204,15 @@ lightApp.controller('LightCtrl', ['$scope', '$timeout', 'hueBridgeInitializer', 
 	}
 	pushSelectedLightState();
     };
-    $scope.updateColor = function() {
-	colorChangeHandler();
-    };
-    $scope.updateBrightness = function() {
-	briChangeHandler();
-    };
+    $scope.$watch('selection.color', function(newValue, oldValue) {
+	if (newValue === undefined) return;
+	if (oldValue === undefined) oldValue = {};
+	    
+	if (newValue.h !== oldValue.h || newValue.s !== oldValue.s) {
+	    colorChangeHandler();
+	}
+	if (newValue.b !== oldValue.b) {
+	    briChangeHandler();
+	}
+    }, true);
 }]);

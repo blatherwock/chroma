@@ -4,8 +4,6 @@ lightApp.directive('colorPicker', ['$document', '$timeout', function($document, 
 	require: 'ngModel',
 	scope: {
 	    ngModel: '=',
-	    onColorChange: '&',
-	    onBrightnessChange: '&',
 	},
 	template:
 	    '<div class="huePickerWrapper">' +
@@ -31,11 +29,6 @@ lightApp.directive('colorPicker', ['$document', '$timeout', function($document, 
 	    };
 
 	    // --- Setup Model Watches --- //
-	    $scope.$watch('ngModel.b', function() {
-		if ($scope.ngModel !== undefined && $scope.ngModel.b !== undefined) {
-		    $scope.onBrightnessChange();
-		}
-	    });
 	    $scope.$watchCollection('ngModel', function(newVal) {
 		if (newVal && newVal.b) {
 		    updateHuePickerShade();
@@ -75,8 +68,6 @@ lightApp.directive('colorPicker', ['$document', '$timeout', function($document, 
 
 		$scope.ngModel.h = Math.floor(hsv.h);
 		$scope.ngModel.s = Math.floor(hsv.s);
-
-		$scope.onColorChange();
 	    }
 
 	    // --- Mouse Events --- //
