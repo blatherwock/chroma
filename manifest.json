@@ -6,7 +6,7 @@
     "version" : "0.2.0",
 
     "permissions" : [
-
+        "http://www.meethue.com/"
     ],
 
 
